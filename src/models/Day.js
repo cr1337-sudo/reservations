@@ -26,7 +26,14 @@ const DaySchema = new Schema({
       "16:00",
       "17:00",
       "18:00",
-    ].map((h) => (h = { hour: h, available: true, sessionData: null })),
+    ].map(
+      (h) =>
+        (h = {
+          hour: h,
+          available: true,
+          sessionData: [],
+        })
+    ),
   },
 });
 

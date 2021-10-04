@@ -30,6 +30,9 @@ const SessionSchema = new Schema(
       type: Array,
       required: true,
     },
+    dayId: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
