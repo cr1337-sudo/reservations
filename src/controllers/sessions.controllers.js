@@ -10,8 +10,8 @@ const getSessions = async (req, res) => {
 
 //month,year,day,hour(str),name,number,jobs[]
 const createSession = async (req, res) => {
-  const { year, month, day, hour, name, number, jobs } = req.body;
-  if (year && month && day && hour && name && number && jobs) {
+  const { year, month, day, hour, name,email, number, jobs } = req.body;
+  if (year && month && day && hour && name && email && number && jobs) {
     try {
       const dayInMonth = await Day.findOne({
         year,
@@ -24,7 +24,7 @@ const createSession = async (req, res) => {
       if (!dayInMonth) {
         const creatingDay = new Day({ year, month, day });
         await creatingDay.save();
-        res.json({ data: "Day created, resend the method" });
+        return res.json({ data: "Day created, resend the method" });
       }
 
       const availableDay = dayInMonth.hours.filter(
@@ -40,11 +40,11 @@ const createSession = async (req, res) => {
         const { _id } = savedSessionDay;
 
         await Day.findOneAndUpdate(
-          { year, month, day, "hours.hour": hour },
+          { year, month, day, email, "hours.hour": hour },
           {
             $set: {
               "hours.$.available": false,
-              "hours.$.sessionData": { name, number, jobs, sessionId: _id },
+              "hours.$.sessionData": { name,email, number, jobs, sessionId: _id },
             },
           },
           {
@@ -67,15 +67,18 @@ const deleteSession = async (req, res) => {
     const deletedSession = await Session.findByIdAndDelete(sessionId);
     if (deletedSession) {
       const dayToUpdate = await Day.findOneAndUpdate(
-
-        { _id: dayId, "hours.sessionData.sessionId": mongoose.Types.ObjectId(sessionId) },
         {
-          "hours.$.sessionData":[],
-          "hours.$.available":true
-        },{
-          new:true
+          _id: dayId,
+          "hours.sessionData.sessionId": mongoose.Types.ObjectId(sessionId),
+        },
+        {
+          "hours.$.sessionData": [],
+          "hours.$.available": true,
+        },
+        {
+          new: true,
         }
-             );
+      );
 
       res.json(dayToUpdate);
     }
@@ -84,5 +87,40 @@ const deleteSession = async (req, res) => {
   }
 };
 
+const updateSession = async (req, res) => {
+  const { dayId, sessionId } = req.params;
+  try {
+    const updatedSession = await Session.findByIdAndUpdate(
+      sessionId,
+      {
+        $set: req.body,
+      },
+      { new: true }
+    );
+      const updatedDay = await Day.findOneAndUpdate(
+        {
+          _id: dayId,
+          "hours.sessionData.sessionId": mongoose.Types.ObjectId(sessionId),
+        },
+        {
+          $set: {
+            "hours.$.sessionData": {
+              name: updatedSession.name,
+              number: updatedSession.number,
+              email: updatedSession.email,
+              jobs: updatedSession.jobs,
+              dayId: updatedSession.dayId,
+            },
+          },
+        },
+        {
+          new: true,
+        }
+      );
+       res.json(updatedDay);
+  } catch (e) {
+    res.json("Invalid session id");
+  }
+};
 
-module.exports = { getSessions, createSession, deleteSession };
+module.exports = { getSessions, createSession, deleteSession, updateSession };

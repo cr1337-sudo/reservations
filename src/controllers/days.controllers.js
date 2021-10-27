@@ -18,7 +18,7 @@ const createDay = async (req, res) => {
 const getDay = async (req, res) => {
   //year month day por parametros
   const days = await Day.find(req.query);
-  if (days.length === 0) return res.json("Empy day list");
+  if (days.length === 0) return res.json(await Day.find({year:1, month:1, day:1}));
   res.json(days);
 };
 
