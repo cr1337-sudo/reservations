@@ -30,6 +30,10 @@ const SessionSchema = new Schema(
       type: Array,
       required: true,
     },
+    note: {
+      type: String,
+      default: "",
+    },
     dayId: {
       type: String,
     },

@@ -1,4 +1,4 @@
-const Day = require("../models/Day");
+const Day = require("../models/Day")
 
 const createDay = async (req, res) => {
   const { year, month, day } = req.body;

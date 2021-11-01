@@ -8,9 +8,9 @@ const getSessions = async (req, res) => {
   res.json(sessions);
 };
 
-//month,year,day,hour(str),name,number,jobs[]
+//month,year,day,hour(str),name,number,jobs[], note
 const createSession = async (req, res) => {
-  const { year, month, day, hour, name,email, number, jobs } = req.body;
+  const { year, month, day, hour, name,email, number, jobs, note } = req.body;
   if (year && month && day && hour && name && email && number && jobs) {
     try {
       const dayInMonth = await Day.findOne({
@@ -22,7 +22,7 @@ const createSession = async (req, res) => {
       });
 
       if (!dayInMonth) {
-        const creatingDay = new Day({ year, month, day });
+        const creatingDay = new Day({ year, month, day, note });
         await creatingDay.save();
         return res.json({ data: "Day created, resend the method" });
       }
@@ -44,7 +44,7 @@ const createSession = async (req, res) => {
           {
             $set: {
               "hours.$.available": false,
-              "hours.$.sessionData": { name,email, number, jobs, sessionId: _id },
+              "hours.$.sessionData": { name,email, number, jobs, sessionId: _id, note },
             },
           },
           {
@@ -110,6 +110,7 @@ const updateSession = async (req, res) => {
               email: updatedSession.email,
               jobs: updatedSession.jobs,
               dayId: updatedSession.dayId,
+              note:updatedSession.note
             },
           },
         },
