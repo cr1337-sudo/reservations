@@ -10,8 +10,8 @@ const getSessions = async (req, res) => {
 
 //month,year,day,hour(str),name,number,jobs[], note
 const createSession = async (req, res) => {
-  const { year, month, day, hour, name,email, number, jobs, note } = req.body;
-  if (year && month && day && hour && name && email && number && jobs) {
+  const { year, month, day, hour, name, email, jobs } = req.body;
+  if (year && month && day && hour && name && email && jobs) {
     try {
       const dayInMonth = await Day.findOne({
         year,
@@ -21,20 +21,13 @@ const createSession = async (req, res) => {
         "hours.available": true,
       });
 
-      if (!dayInMonth) {
-        const creatingDay = new Day({ year, month, day, note });
-        await creatingDay.save();
-        return res.json({ data: "Day created, resend the method" });
-      }
-
       const availableDay = dayInMonth.hours.filter(
         (day) =>
           day.available === true &&
           day.sessionData.length === 0 &&
           day.hour === hour
       );
-
-      if (availableDay.length !== 0) {
+      if (availableDay.length != 0) {
         const sessionDay = new Session({ dayId: dayInMonth._id, ...req.body });
         const savedSessionDay = await sessionDay.save();
         const { _id } = savedSessionDay;
@@ -44,7 +37,13 @@ const createSession = async (req, res) => {
           {
             $set: {
               "hours.$.available": false,
-              "hours.$.sessionData": { name,email, number, jobs, sessionId: _id, note },
+              "hours.$.sessionData": {
+                name,
+                email,
+                jobs,
+                sessionId: _id,
+                note: req.body.note,
+              },
             },
           },
           {
@@ -97,28 +96,28 @@ const updateSession = async (req, res) => {
       },
       { new: true }
     );
-      const updatedDay = await Day.findOneAndUpdate(
-        {
-          _id: dayId,
-          "hours.sessionData.sessionId": mongoose.Types.ObjectId(sessionId),
-        },
-        {
-          $set: {
-            "hours.$.sessionData": {
-              name: updatedSession.name,
-              number: updatedSession.number,
-              email: updatedSession.email,
-              jobs: updatedSession.jobs,
-              dayId: updatedSession.dayId,
-              note:updatedSession.note
-            },
+    const updatedDay = await Day.findOneAndUpdate(
+      {
+        _id: dayId,
+        "hours.sessionData.sessionId": mongoose.Types.ObjectId(sessionId),
+      },
+      {
+        $set: {
+          "hours.$.sessionData": {
+            name: updatedSession.name,
+            number: updatedSession.number,
+            email: updatedSession.email,
+            jobs: updatedSession.jobs,
+            dayId: updatedSession.dayId,
+            note: updatedSession.note,
           },
         },
-        {
-          new: true,
-        }
-      );
-       res.json(updatedDay);
+      },
+      {
+        new: true,
+      }
+    );
+    res.json(updatedDay);
   } catch (e) {
     res.json("Invalid session id");
   }
