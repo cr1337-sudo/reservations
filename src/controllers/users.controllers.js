@@ -15,7 +15,9 @@ const updateUser = async (req, res) => {
         },
         { new: true }
       );
-      res.json(updatedUser);
+
+      const {email, name, phone, _id} = updatedUser._doc
+      res.status(200).json({email, name, phone, _id});
     } catch (e) {
       res.status(500).json("Erro");
     }

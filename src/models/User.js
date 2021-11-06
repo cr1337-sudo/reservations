@@ -16,9 +16,13 @@ const UserSchema = new Schema(
       min: 6,
       required: true,
     },
-    code: {
-      type: String,
-      default: null,
+    phone:{
+      type:Number,
+      default:null
+    },
+    profilePic:{
+      type:String,
+      default:""
     },
     isAdmin: {
       type: Boolean,
